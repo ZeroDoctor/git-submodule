@@ -17,6 +17,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         running = false;
         slog::info("Close window event");
     }
+    
+    if(key == GLFW_KEY_E && action == GLFW_PRESS) {
+        glfwSetWindowPos(window, 500, 500);
+        slog::info("Move window event");
+    }
 }
 
 int main() {
@@ -67,6 +72,7 @@ int main() {
         return 1;
     }
 
+    glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
     GLFWwindow* window = glfwCreateWindow(640, 480, "My Title", NULL, NULL);
     if (window == NULL) 
     {
