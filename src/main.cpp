@@ -15,17 +15,19 @@
 namespace slog = spdlog;
 
 bool running = true; // forgive me. Will place in class
+const int WIDTH = 1280;
+const int HEIGHT = 720;
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         running = false;
-        slog::info("Close window event");
+        slog::debug("Close window event");
     }
     
     if(key == GLFW_KEY_E && action == GLFW_PRESS) {
         glfwSetWindowPos(window, 500, 500);
-        slog::info("Move window event");
+        slog::trace("Move window event");
     }
 }
 
@@ -59,7 +61,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
-    GLFWwindow* window = glfwCreateWindow(640, 480, "My Title", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "My Title", NULL, NULL);
     if (window == NULL) 
     {
         const char* desc;
@@ -78,6 +80,14 @@ int main() {
         glfwTerminate();
         return 1;
     }
+
+    
+    
+    const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+    int win_width = mode->width;
+    int win_height = mode->height;
+
+    glfwSetWindowPos(window, win_width / 2 - WIDTH / 2, win_height / 2 - HEIGHT / 2);
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
