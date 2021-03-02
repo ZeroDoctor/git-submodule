@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <chrono>
 #include <thread>
+#include <string>
 
 #include "spdlog/spdlog.h"
 #include "spdlog/cfg/env.h"
@@ -18,17 +19,17 @@ bool running = true; // forgive me. Will place in class
 const int WIDTH = 1280;
 const int HEIGHT = 720;
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+int InputTextCallback(ImGuiInputTextCallbackData* data)
 {
-    if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        running = false;
-        slog::debug("Close window event");
+    if(data->EventFlag == ImGuiInputTextFlags_CallbackResize)
+    {
+        std::string* str = (std::string*)data->UserData;
+        IM_ASSERT(data->Buf == str->c_str());
+        str->resize(data->BufTextLen);
+        data->Buf = (char*) str->c_str();
     }
-    
-    if(key == GLFW_KEY_E && action == GLFW_PRESS) {
-        glfwSetWindowPos(window, 500, 500);
-        slog::trace("Move window event");
-    }
+
+    return 0;
 }
 
 int main() {
@@ -57,7 +58,7 @@ int main() {
     }
 
     slog::debug("Adding glfw window hints");
-    glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+    //glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
@@ -100,19 +101,46 @@ int main() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 130");
 
-    bool show_demo_window = true;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    bool show_text_editor = true;
 
-    glfwSetKeyCallback(window, key_callback);
+    std::string buf;
+    buf.resize(1024*16);
+    
     while(!glfwWindowShouldClose(window) && running) {
+        if(ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
+            slog::trace("Closing window from imgui");
+            running = false;
+        }
         glfwPollEvents();
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
+
         ImGui::NewFrame();
 
-        if(show_demo_window) ImGui::ShowDemoWindow(&show_demo_window);
+        
 
+        if(ImGui::BeginMainMenuBar())
+        {
+            if(ImGui::BeginMenu("File"))
+            {
+                if(ImGui::MenuItem("Close", "esc")) running = false;
+                ImGui::EndMenu();
+            }
+            ImGui::EndMainMenuBar();
+        }
+
+        if(ImGui::Begin("Text Editor", &show_text_editor, ImGuiWindowFlags_NoTitleBar))
+        {
+            ImGui::InputTextMultiline(
+                "Editor", (char*) buf.c_str(), buf.capacity() + 1, ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16),
+                ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CallbackResize | ImGuiInputTextFlags_CallbackAlways,
+                InputTextCallback, (void*)&buf
+            );
+
+            ImGui::End();
+        }
 
         ImGui::Render();
         int display_w, display_h;
