@@ -81,8 +81,6 @@ int main() {
         glfwTerminate();
         return 1;
     }
-
-    
     
     const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
     int win_width = mode->width;
@@ -106,6 +104,9 @@ int main() {
 
     std::string buf;
     buf.resize(1024*16);
+
+    bool show_select_tab = true;
+    bool show_editor = true;
     
     while(!glfwWindowShouldClose(window) && running) {
         if(ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
@@ -119,7 +120,6 @@ int main() {
 
         ImGui::NewFrame();
 
-        
 
         if(ImGui::BeginMainMenuBar())
         {
@@ -131,14 +131,25 @@ int main() {
             ImGui::EndMainMenuBar();
         }
 
-        if(ImGui::Begin("Text Editor", &show_text_editor, ImGuiWindowFlags_NoTitleBar))
-        {
-            ImGui::InputTextMultiline(
-                "Editor", (char*) buf.c_str(), buf.capacity() + 1, ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16),
-                ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CallbackResize | ImGuiInputTextFlags_CallbackAlways,
-                InputTextCallback, (void*)&buf
-            );
 
+        if(ImGui::Begin("This name", &show_editor))
+        {
+            if(ImGui::BeginTabBar("TabBar", ImGuiTabBarFlags_AutoSelectNewTabs))
+            {
+                ImVec2 win_vec = ImGui::GetWindowPos();
+                if(ImGui::BeginTabItem("TabLabel", &show_select_tab))
+                {
+                    ImDrawList* drawList = ImGui::GetWindowDrawList();
+                    ImVec2 win_vec = ImGui::GetWindowPos();
+                    drawList->AddRectFilled(ImVec2(win_vec.x + 5, win_vec.y + 50), ImVec2(win_vec.x + 55, win_vec.y + 100), 0xff00ff00);
+                    buf = "1 |";
+                    drawList->AddText(ImVec2(win_vec.x + 5, win_vec.y + 150), 0xff0000ff, buf.data());
+                    ImGui::EndTabItem();
+                }
+
+                ImGui::EndTabBar();
+            }
+            
             ImGui::End();
         }
 
